@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Transaction History</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+<body>
+
+<div class="page">
+
+    <nav>
+
+        <a href="{{ url_for('dashboard') }}">📊 Dashboard</a>
+
+        <a href="{{ url_for('students') }}">👨‍🎓 Students</a>
+
+        <a href="{{ url_for('books') }}">📚 Books</a>
+
+        <a href="{{ url_for('issue_return') }}">
+            📤📥 Issue / Return
+        </a>
+
+        <a href="{{ url_for('history') }}">📜 History</a>
+
+        <a href="{{ url_for('logout') }}">🚪 Logout</a>
+
+    </nav>
+
+
+    <h1>📜 Transaction History</h1>
+
+
+    <div class="table-box">
+
+        <table>
+
+            <tr>
+
+                <th>ID</th>
+
+                <th>Student</th>
+
+                <th>Book</th>
+
+                <th>Issue Date</th>
+
+                <th>Return Date</th>
+
+                <th>Status</th>
+
+            </tr>
+
+
+            {% for item in transactions %}
+
+            <tr>
+
+                <td>{{ item.id }}</td>
+
+                <td>{{ item.student_name }}</td>
+
+                <td>{{ item.book_title }}</td>
+
+                <td>{{ item.issue_date }}</td>
+
+                <td>
+                    {{ item.return_date or "-" }}
+                </td>
+
+                <td>
+
+                    {% if item.status == "Issued" %}
+
+                        <span class="issued">
+                            📤 Issued
+                        </span>
+
+                    {% else %}
+
+                        <span class="returned">
+                            📥 Returned
+                        </span>
+
+                    {% endif %}
+
+                </td>
+
+            </tr>
+
+            {% else %}
+
+            <tr>
+
+                <td colspan="6">
+                    No history available.
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </table>
+
+    </div>
+
+</div>
+
+</body>
+</html>

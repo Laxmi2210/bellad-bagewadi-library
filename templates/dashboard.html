@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Admin Dashboard</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+<body>
+
+<div class="dashboard">
+
+    <header>
+
+        <div>
+            <h1>📊 ADMIN DASHBOARD</h1>
+
+            <p>
+                BELLAD BAGEWADI GRAM PANCHAYAT LIBRARY
+            </p>
+        </div>
+
+        <a href="{{ url_for('logout') }}"
+           class="logout">
+            🚪 Logout
+        </a>
+
+    </header>
+
+
+    <div class="cards">
+
+        <div class="card">
+
+            <span>👨‍🎓</span>
+
+            <h2>Students</h2>
+
+            <strong>{{ students }}</strong>
+
+            <p>Registered Students</p>
+
+            <a href="{{ url_for('students') }}">
+                Manage Students →
+            </a>
+
+        </div>
+
+
+        <div class="card">
+
+            <span>📚</span>
+
+            <h2>Books</h2>
+
+            <strong>{{ books }}</strong>
+
+            <p>Total Books</p>
+
+            <a href="{{ url_for('books') }}">
+                Manage Books →
+            </a>
+
+        </div>
+
+
+        <div class="card">
+
+            <span>📤</span>
+
+            <h2>Issued</h2>
+
+            <strong>{{ issued }}</strong>
+
+            <p>Books Currently Issued</p>
+
+            <a href="{{ url_for('issue_return') }}">
+                Issue / Return →
+            </a>
+
+        </div>
+
+
+        <div class="card">
+
+            <span>📥</span>
+
+            <h2>Returned</h2>
+
+            <strong>{{ returned }}</strong>
+
+            <p>Returned Books</p>
+
+            <a href="{{ url_for('history') }}">
+                View History →
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <div class="quick">
+
+        <h2>Quick Actions</h2>
+
+        <a href="{{ url_for('students') }}">
+            👨‍🎓 Students
+        </a>
+
+        <a href="{{ url_for('books') }}">
+            📚 Books
+        </a>
+
+        <a href="{{ url_for('issue_return') }}">
+            📤📥 Issue / Return
+        </a>
+
+        <a href="{{ url_for('history') }}">
+            📜 History
+        </a>
+
+    </div>
+
+</div>
+
+</body>
+</html>

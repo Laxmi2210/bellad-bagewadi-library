@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Issue / Return</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+<body>
+
+<div class="page">
+
+    <nav>
+
+        <a href="{{ url_for('dashboard') }}">📊 Dashboard</a>
+
+        <a href="{{ url_for('students') }}">👨‍🎓 Students</a>
+
+        <a href="{{ url_for('books') }}">📚 Books</a>
+
+        <a href="{{ url_for('issue_return') }}">
+            📤📥 Issue / Return
+        </a>
+
+        <a href="{{ url_for('history') }}">📜 History</a>
+
+        <a href="{{ url_for('logout') }}">🚪 Logout</a>
+
+    </nav>
+
+
+    <h1>📤📥 Issue / Return Books</h1>
+
+
+    <!-- ================= ISSUE BOOK ================= -->
+
+    <div class="form-box">
+
+        <h2>📤 Issue Book</h2>
+
+        <form method="POST"
+              action="{{ url_for('issue_book') }}">
+
+            <label>Student</label>
+
+            <select name="student_id" required>
+
+                <option value="">
+                    -- Select Student --
+                </option>
+
+                {% for student in students %}
+
+                <option value="{{ student['id'] }}">
+                    {{ student['name'] }}
+                </option>
+
+                {% endfor %}
+
+            </select>
+
+
+            <label>Book</label>
+
+            <select name="book_id" required>
+
+                <option value="">
+                    -- Select Book --
+                </option>
+
+                {% for book in books %}
+
+                <option value="{{ book['id'] }}">
+                    {{ book['title'] }}
+                    — Available: {{ book['quantity'] }}
+                </option>
+
+                {% endfor %}
+
+            </select>
+
+
+            <label>📅 Issue Date</label>
+
+            <input
+                type="date"
+                name="issue_date"
+                value="{{ today }}"
+                required
+            >
+
+
+            <label>📅 Expected Return Date</label>
+
+            <input
+                type="date"
+                name="return_date"
+                required
+            >
+
+
+            <button type="submit">
+                📤 Issue Book
+            </button>
+
+        </form>
+
+    </div>
+
+
+    <!-- ================= TRANSACTIONS ================= -->
+
+    <div class="table-box">
+
+        <h2>📋 Issue / Return Records</h2>
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>ID</th>
+
+                    <th>Student</th>
+
+                    <th>Book</th>
+
+                    <th>Issue Date</th>
+
+                    <th>Expected Return</th>
+
+                    <th>Status</th>
+
+                    <th>Action</th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+            {% for item in transactions %}
+
+                <tr>
+
+                    <td>
+                        {{ item['id'] }}
+                    </td>
+
+                    <td>
+                        {{ item['student_name'] }}
+                    </td>
+
+                    <td>
+                        {{ item['book_title'] }}
+                    </td>
+
+                    <td>
+                        {{ item['issue_date'] }}
+                    </td>
+
+                    <td>
+                        {{ item['return_date'] or '-' }}
+                    </td>
+
+                    <td>
+
+                        {% if item['status'] == 'Issued' %}
+
+                            <span class="issued">
+                                📤 Issued
+                            </span>
+
+                        {% else %}
+
+                            <span class="returned">
+                                📥 Returned
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+                    <td>
+
+                        {% if item['status'] == 'Issued' %}
+
+                        <a
+                            class="return"
+                            href="{{ url_for('return_book', id=item['id']) }}"
+                            onclick="return confirm('Are you sure you want to return this book?');">
+
+                            📥 Return
+
+                        </a>
+
+                        {% else %}
+
+                            ✅ Completed
+
+                        {% endif %}
+
+                    </td>
+
+                </tr>
+
+            {% else %}
+
+                <tr>
+
+                    <td colspan="7">
+                        No issue/return records yet.
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+</body>
+
+</html>

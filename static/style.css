@@ -1,0 +1,402 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #f3f6fa;
+    color: #222;
+}
+
+
+/* ================= HOME ================= */
+
+.home {
+    width: 90%;
+    max-width: 900px;
+    margin: 100px auto;
+    background: white;
+    text-align: center;
+    padding: 70px 30px;
+    border-radius: 25px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.12);
+}
+
+.logo {
+    font-size: 70px;
+}
+
+.home h1 {
+    margin-top: 15px;
+    font-size: 38px;
+}
+
+.home h2 {
+    margin-top: 10px;
+    color: #1769aa;
+}
+
+.home p {
+    margin: 25px 0;
+    color: #666;
+    font-size: 18px;
+}
+
+.btn {
+    display: inline-block;
+    padding: 15px 30px;
+    background: #1769aa;
+    color: white;
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: bold;
+}
+
+
+/* ================= LOGIN ================= */
+
+.login-box {
+    width: 90%;
+    max-width: 450px;
+    margin: 80px auto;
+    padding: 40px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.12);
+    text-align: center;
+}
+
+.login-box h1 {
+    margin: 15px 0;
+}
+
+.login-box p {
+    color: #777;
+    margin-bottom: 25px;
+}
+
+.login-box label {
+    display: block;
+    text-align: left;
+    margin: 15px 0 6px;
+    font-weight: bold;
+}
+
+input,
+select {
+    width: 100%;
+    padding: 13px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 15px;
+}
+
+button {
+    border: none;
+    padding: 13px 20px;
+    background: #1769aa;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.login-box button {
+    width: 100%;
+    margin: 25px 0;
+}
+
+.login-box a {
+    color: #1769aa;
+    text-decoration: none;
+}
+
+.error {
+    background: #ffe1e1;
+    color: #c00;
+    padding: 12px;
+    border-radius: 8px;
+}
+
+
+/* ================= DASHBOARD ================= */
+
+.dashboard,
+.page {
+    width: 94%;
+    max-width: 1200px;
+    margin: 30px auto;
+}
+
+header {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 5px 20px rgba(0,0,0,.08);
+}
+
+header h1 {
+    color: #1769aa;
+}
+
+header p {
+    color: #777;
+    margin-top: 5px;
+}
+
+.logout {
+    background: #d32f2f;
+    color: white;
+    text-decoration: none;
+    padding: 12px 18px;
+    border-radius: 8px;
+}
+
+
+/* ================= CARDS ================= */
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-top: 25px;
+}
+
+.card {
+    background: white;
+    padding: 30px 20px;
+    border-radius: 18px;
+    text-align: center;
+    box-shadow: 0 5px 20px rgba(0,0,0,.07);
+}
+
+.card span {
+    font-size: 45px;
+}
+
+.card h2 {
+    margin: 12px 0;
+}
+
+.card strong {
+    display: block;
+    font-size: 40px;
+    color: #1769aa;
+}
+
+.card p {
+    color: #777;
+    margin: 8px 0 18px;
+}
+
+.card a {
+    color: #1769aa;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+
+/* ================= QUICK ================= */
+
+.quick {
+    margin-top: 25px;
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+}
+
+.quick h2 {
+    margin-bottom: 15px;
+}
+
+.quick a {
+    display: inline-block;
+    padding: 12px 18px;
+    margin: 5px;
+    background: #1769aa;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+}
+
+
+/* ================= NAVIGATION ================= */
+
+nav {
+    background: #1769aa;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    padding: 8px 12px;
+}
+
+
+/* ================= PAGE ================= */
+
+.page > h1 {
+    margin-bottom: 20px;
+    color: #1769aa;
+}
+
+.form-box,
+.table-box,
+.search {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    margin-bottom: 25px;
+    box-shadow: 0 5px 20px rgba(0,0,0,.06);
+}
+
+.form-box h2,
+.table-box h2 {
+    margin-bottom: 20px;
+}
+
+.form-box label {
+    display: block;
+    margin: 12px 0 6px;
+    font-weight: bold;
+}
+
+.form-box button {
+    margin-top: 20px;
+}
+
+
+/* ================= TABLE ================= */
+
+.table-box {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 13px;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+}
+
+th {
+    background: #1769aa;
+    color: white;
+}
+
+tr:hover {
+    background: #f5f8fb;
+}
+
+
+/* ================= ACTIONS ================= */
+
+.edit,
+.delete,
+.return {
+    display: inline-block;
+    padding: 7px 10px;
+    border-radius: 6px;
+    text-decoration: none;
+    margin: 2px;
+}
+
+.edit {
+    background: #1976d2;
+    color: white;
+}
+
+.delete {
+    background: #d32f2f;
+    color: white;
+}
+
+.return {
+    background: #388e3c;
+    color: white;
+}
+
+
+/* ================= SEARCH ================= */
+
+.search form {
+    display: flex;
+    gap: 10px;
+}
+
+.search input {
+    flex: 1;
+}
+
+
+/* ================= STATUS ================= */
+
+.issued {
+    color: #d32f2f;
+    font-weight: bold;
+}
+
+.returned {
+    color: #388e3c;
+    font-weight: bold;
+}
+
+
+/* ================= MOBILE ================= */
+
+@media (max-width: 900px) {
+
+    .cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+}
+
+@media (max-width: 600px) {
+
+    .cards {
+        grid-template-columns: 1fr;
+    }
+
+    header {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+    }
+
+    nav {
+        flex-direction: column;
+    }
+
+    .search form {
+        flex-direction: column;
+    }
+
+}
+.success-message{
+    background:#d4edda ;
+    color: #155724;
+    border: 2px solid #28a745;
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 10px;
+    font-weight: bold;
+    text-align: center;
+    font-size: 18px;
+}
