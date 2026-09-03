@@ -1,12 +1,19 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 import sqlite3
+import os
 from datetime import date
 
 app = Flask(__name__)
 
+# =========================================================
+# APPLICATION SETTINGS
+# =========================================================
+
 app.secret_key = "bellad_bagewadi_library_secret"
 
-DATABASE = "library.db"
+# Always use the database located beside app.py
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATABASE = os.path.join(BASE_DIR, "library.db")
 
 
 # =========================================================
@@ -14,24 +21,19 @@ DATABASE = "library.db"
 # =========================================================
 
 def get_db():
-
     conn = sqlite3.connect(DATABASE)
-
     conn.row_factory = sqlite3.Row
-
     return conn
 
 
 # =========================================================
-# CREATE DATABASE
+# CREATE / UPDATE DATABASE
 # =========================================================
 
 def create_database():
 
     conn = get_db()
-
     cursor = conn.cursor()
-
 
     # -----------------------------------------------------
     # STUDENTS TABLE
@@ -39,19 +41,12 @@ def create_database():
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS students (
-
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-
             registration_no TEXT,
-
             name TEXT NOT NULL,
-
             mobile TEXT,
-
-            aadhar TEXT,            
-
+            aadhaar TEXT,
             address TEXT
-
         )
     """)
 
@@ -61,20 +56,13 @@ def create_database():
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS books (
-
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-
             title TEXT NOT NULL,
-
             author TEXT,
-
             category TEXT DEFAULT 'General',
-
             quantity INTEGER DEFAULT 1
-
         )
     """)
-
 
     # -----------------------------------------------------
     # TRANSACTIONS TABLE
@@ -82,58 +70,117 @@ def create_database():
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS transactions (
-
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-
             student_id INTEGER,
-
             book_id INTEGER,
-
             issue_date TEXT,
-
             return_date TEXT,
-
             status TEXT
-
         )
     """)
 
+    # =====================================================
+    # CHECK STUDENTS TABLE
+    # =====================================================
+
+    student_columns = cursor.execute(
+        "PRAGMA table_info(students)"
+    ).fetchall()
+
+    student_column_names = [
+        column["name"] for column in student_columns
+    ]
+
+    # Add registration_no if old database doesn't have it
+    if "registration_no" not in student_column_names:
+
+        cursor.execute("""
+            ALTER TABLE students
+            ADD COLUMN registration_no TEXT
+        """)
+
+    # Add aadhaar if old database doesn't have it
+    if "aadhaar" not in student_column_names:
+
+        # If old database has "aadhar", rename/copy its data
+        if "aadhar" in student_column_names:
+
+            cursor.execute("""
+                ALTER TABLE students
+                ADD COLUMN aadhaar TEXT
+            """)
+
+            cursor.execute("""
+                UPDATE students
+                SET aadhaar = aadhar
+                WHERE aadhaar IS NULL
+            """)
+
+        else:
+
+            cursor.execute("""
+                ALTER TABLE students
+                ADD COLUMN aadhaar TEXT
+            """)
 
     # =====================================================
-    # FIX OLD BOOK DATABASE
+    # CHECK BOOKS TABLE
     # =====================================================
 
-    # Get existing books table columns
-
-    columns = cursor.execute(
+    book_columns = cursor.execute(
         "PRAGMA table_info(books)"
     ).fetchall()
 
-    column_names = [column["name"] for column in columns]
-
+    book_column_names = [
+        column["name"] for column in book_columns
+    ]
 
     # Add category if old database doesn't have it
-
-    if "category" not in column_names:
+    if "category" not in book_column_names:
 
         cursor.execute("""
             ALTER TABLE books
             ADD COLUMN category TEXT DEFAULT 'General'
         """)
 
-
     # Add quantity if old database doesn't have it
-
-    if "quantity" not in column_names:
+    if "quantity" not in book_column_names:
 
         cursor.execute("""
             ALTER TABLE books
             ADD COLUMN quantity INTEGER DEFAULT 1
         """)
 
+    # =====================================================
+    # CREATE REGISTRATION NUMBERS FOR OLD STUDENTS
+    # =====================================================
+
+    old_students = cursor.execute("""
+        SELECT id
+        FROM students
+        WHERE registration_no IS NULL
+           OR registration_no = ''
+        ORDER BY id
+    """).fetchall()
+
+    for student in old_students:
+
+        registration_no = f"LIB-{student['id']:04d}"
+
+        cursor.execute("""
+            UPDATE students
+            SET registration_no = ?
+            WHERE id = ?
+        """, (
+            registration_no,
+            student["id"]
+        ))
+
+    # =====================================================
+    # SAVE DATABASE
+    # =====================================================
 
     conn.commit()
-
     conn.close()
 
 
@@ -165,24 +212,29 @@ def login():
 
     if request.method == "POST":
 
-        username = request.form.get("username", "").strip()
+        username = request.form.get(
+            "username",
+            ""
+        ).strip()
 
-        password = request.form.get("password", "").strip()
+        password = request.form.get(
+            "password",
+            ""
+        ).strip()
 
-
+        # Login details
         if username == "admin" and password == "1234":
 
             session["owner_logged_in"] = True
 
-
-            return redirect(url_for("dashboard"))
-
+            return redirect(
+                url_for("dashboard")
+            )
 
         return render_template(
             "login.html",
             error="Invalid username or password!"
         )
-
 
     return render_template("login.html")
 
@@ -196,7 +248,9 @@ def logout():
 
     session.clear()
 
-    return redirect(url_for("home"))
+    return redirect(
+        url_for("home")
+    )
 
 
 # =========================================================
@@ -208,60 +262,48 @@ def dashboard():
 
     if not logged_in():
 
-        return redirect(url_for("login"))
-
+        return redirect(
+            url_for("login")
+        )
 
     conn = get_db()
 
-
-    # Student count
-
+    # Total students
     student_count = conn.execute("""
         SELECT COUNT(*)
         FROM students
     """).fetchone()[0]
 
-
-    # Book count
-
+    # Total books
     book_count = conn.execute("""
         SELECT COUNT(*)
         FROM books
     """).fetchone()[0]
 
-
     # Currently issued
-
     issued_count = conn.execute("""
         SELECT COUNT(*)
         FROM transactions
         WHERE status = 'Issued'
     """).fetchone()[0]
 
-
-    # Returned
-
+    # Returned books
     returned_count = conn.execute("""
         SELECT COUNT(*)
         FROM transactions
         WHERE status = 'Returned'
     """).fetchone()[0]
 
-
     conn.close()
-
 
     return render_template(
         "dashboard.html",
-
         students=student_count,
-
         books=book_count,
-
         issued=issued_count,
-
         returned=returned_count
     )
+
 
 # =========================================================
 # STUDENTS
@@ -271,7 +313,10 @@ def dashboard():
 def students():
 
     if not logged_in():
-        return redirect(url_for("login"))
+
+        return redirect(
+            url_for("login")
+        )
 
     conn = get_db()
 
@@ -289,13 +334,17 @@ def students():
 
     conn.close()
 
-    success = session.pop("success_message", None)
+    success = session.pop(
+        "success_message",
+        None
+    )
 
     return render_template(
         "students.html",
         students=student_list,
         success=success
     )
+
 
 # =========================================================
 # ADD STUDENT
@@ -305,34 +354,71 @@ def students():
 def add_student():
 
     if not logged_in():
-        return redirect(url_for("login"))
 
-    name = request.form.get("name", "").strip()
-    mobile = request.form.get("mobile", "").strip()
-    aadhaar = request.form.get("aadhaar", "").strip()
-    address = request.form.get("address", "").strip()
+        return redirect(
+            url_for("login")
+        )
 
+    name = request.form.get(
+        "name",
+        ""
+    ).strip()
+
+    mobile = request.form.get(
+        "mobile",
+        ""
+    ).strip()
+
+    aadhaar = request.form.get(
+        "aadhaar",
+        ""
+    ).strip()
+
+    address = request.form.get(
+        "address",
+        ""
+    ).strip()
+
+    # Name is required
     if name == "":
-        return redirect(url_for("students"))
+
+        return redirect(
+            url_for("students")
+        )
 
     conn = get_db()
 
-    next_id = conn.execute(
-        "SELECT COALESCE(MAX(id), 0) + 1 FROM students"
-    ).fetchone()[0]
-
-    registration_no = f"LIB-{next_id:04d}"
-
-    conn.execute("""
+    # Insert student first
+    cursor = conn.execute("""
         INSERT INTO students
-        (registration_no, name, mobile, aadhaar, address)
-        VALUES (?, ?, ?, ?, ?)
+        (
+            name,
+            mobile,
+            aadhaar,
+            address
+        )
+        VALUES (?, ?, ?, ?)
     """, (
-        registration_no,
         name,
         mobile,
         aadhaar,
         address
+    ))
+
+    # Get newly created ID
+    student_id = cursor.lastrowid
+
+    # Create registration number
+    registration_no = f"LIB-{student_id:04d}"
+
+    # Update registration number
+    conn.execute("""
+        UPDATE students
+        SET registration_no = ?
+        WHERE id = ?
+    """, (
+        registration_no,
+        student_id
     ))
 
     conn.commit()
@@ -343,22 +429,32 @@ def add_student():
         f"Registration No: {registration_no}"
     )
 
-    return redirect(url_for("students"))
+    return redirect(
+        url_for("students")
+    )
+
 
 # =========================================================
 # EDIT STUDENT
 # =========================================================
 
-@app.route("/students/edit/<int:id>", methods=["GET", "POST"])
+@app.route(
+    "/students/edit/<int:id>",
+    methods=["GET", "POST"]
+)
 def edit_student(id):
 
     if not logged_in():
 
-        return redirect(url_for("login"))
-
+        return redirect(
+            url_for("login")
+        )
 
     conn = get_db()
 
+    # -----------------------------------------------------
+    # UPDATE STUDENT
+    # -----------------------------------------------------
 
     if request.method == "POST":
 
@@ -367,65 +463,71 @@ def edit_student(id):
             ""
         ).strip()
 
-
         mobile = request.form.get(
             "mobile",
             ""
         ).strip()
 
+        aadhaar = request.form.get(
+            "aadhaar",
+            ""
+        ).strip()
 
         address = request.form.get(
             "address",
             ""
         ).strip()
 
-
         if name == "":
 
             conn.close()
 
-            return redirect(url_for("students"))
-
+            return redirect(
+                url_for("students")
+            )
 
         conn.execute("""
             UPDATE students
-
             SET
                 name = ?,
                 mobile = ?,
+                aadhaar = ?,
                 address = ?
-
             WHERE id = ?
         """, (
             name,
             mobile,
+            aadhaar,
             address,
             id
         ))
 
-
         conn.commit()
-
         conn.close()
 
+        return redirect(
+            url_for("students")
+        )
 
-        return redirect(url_for("students"))
-
+    # -----------------------------------------------------
+    # GET STUDENT
+    # -----------------------------------------------------
 
     student = conn.execute("""
         SELECT *
         FROM students
         WHERE id = ?
-    """, (id,)).fetchone()
-
+    """, (
+        id,
+    )).fetchone()
 
     conn.close()
 
-
     if student is None:
 
-        return redirect(url_for("students"))
-
+        return redirect(
+            url_for("students")
+        )
 
     return render_template(
         "edit_student.html",
@@ -442,24 +544,25 @@ def delete_student(id):
 
     if not logged_in():
 
-        return redirect(url_for("login"))
-
+        return redirect(
+            url_for("login")
+        )
 
     conn = get_db()
-
 
     conn.execute("""
         DELETE FROM students
         WHERE id = ?
-    """, (id,))
-
+    """, (
+        id,
+    ))
 
     conn.commit()
-
     conn.close()
 
-
-    return redirect(url_for("students"))
+    return redirect(
+        url_for("students")
+    )
 
 
 # =========================================================
@@ -471,36 +574,32 @@ def books():
 
     if not logged_in():
 
-        return redirect(url_for("login"))
-
+        return redirect(
+            url_for("login")
+        )
 
     search = request.args.get(
         "search",
         ""
     ).strip()
 
-
     conn = get_db()
-
 
     if search:
 
         book_list = conn.execute("""
             SELECT *
             FROM books
-
             WHERE
                 title LIKE ?
                 OR author LIKE ?
                 OR category LIKE ?
-
             ORDER BY id DESC
         """, (
-            "%" + search + "%",
-            "%" + search + "%",
-            "%" + search + "%"
+            f"%{search}%",
+            f"%{search}%",
+            f"%{search}%"
         )).fetchall()
-
 
     else:
 
@@ -510,18 +609,19 @@ def books():
             ORDER BY id DESC
         """).fetchall()
 
-
     conn.close()
 
+    success = session.pop(
+        "book_success",
+        None
+    )
 
     return render_template(
         "books.html",
-
         books=book_list,
-
         search=search,
-
-        edit_book=None
+        edit_book=None,
+        success=success
     )
 
 
@@ -534,60 +634,52 @@ def add_book():
 
     if not logged_in():
 
-        return redirect(url_for("login"))
-
+        return redirect(
+            url_for("books")
+        )
 
     title = request.form.get(
         "title",
         ""
     ).strip()
 
-
     author = request.form.get(
         "author",
         ""
     ).strip()
-
 
     category = request.form.get(
         "category",
         ""
     ).strip()
 
-
     quantity = request.form.get(
         "quantity",
         "1"
     ).strip()
 
-
     if title == "":
 
-        return redirect(url_for("books"))
-
+        return redirect(
+            url_for("books")
+        )
 
     if category == "":
 
         category = "General"
-
-
-    # Convert quantity to number
 
     try:
 
         quantity = int(quantity)
 
         if quantity < 1:
-
             quantity = 1
 
     except ValueError:
 
         quantity = 1
 
-
     conn = get_db()
-
 
     conn.execute("""
         INSERT INTO books
@@ -597,7 +689,6 @@ def add_book():
             category,
             quantity
         )
-
         VALUES (?, ?, ?, ?)
     """, (
         title,
@@ -606,29 +697,36 @@ def add_book():
         quantity
     ))
 
-
     conn.commit()
-
     conn.close()
 
+    session["book_success"] = (
+        f"Book Added Successfully! "
+        f"Book: {title}"
+    )
 
-    return redirect(url_for("books"))
+    return redirect(
+        url_for("books")
+    )
 
 
 # =========================================================
 # EDIT BOOK
 # =========================================================
 
-@app.route("/books/edit/<int:id>", methods=["GET", "POST"])
+@app.route(
+    "/books/edit/<int:id>",
+    methods=["GET", "POST"]
+)
 def edit_book(id):
 
     if not logged_in():
 
-        return redirect(url_for("login"))
-
+        return redirect(
+            url_for("login")
+        )
 
     conn = get_db()
-
 
     # -----------------------------------------------------
     # UPDATE BOOK
@@ -641,59 +739,51 @@ def edit_book(id):
             ""
         ).strip()
 
-
         author = request.form.get(
             "author",
             ""
         ).strip()
-
 
         category = request.form.get(
             "category",
             ""
         ).strip()
 
-
         quantity = request.form.get(
             "quantity",
             "1"
         ).strip()
 
-
         if title == "":
 
             conn.close()
 
-            return redirect(url_for("books"))
-
+            return redirect(
+                url_for("books")
+            )
 
         if category == "":
 
             category = "General"
-
 
         try:
 
             quantity = int(quantity)
 
             if quantity < 0:
-
                 quantity = 0
 
         except ValueError:
 
             quantity = 0
 
-
         conn.execute("""
             UPDATE books
-
             SET
                 title = ?,
                 author = ?,
                 category = ?,
                 quantity = ?
-
             WHERE id = ?
         """, (
             title,
@@ -703,14 +793,12 @@ def edit_book(id):
             id
         ))
 
-
         conn.commit()
-
         conn.close()
 
-
-        return redirect(url_for("books"))
-
+        return redirect(
+            url_for("books")
+        )
 
     # -----------------------------------------------------
     # GET BOOK
@@ -720,15 +808,17 @@ def edit_book(id):
         SELECT *
         FROM books
         WHERE id = ?
-    """, (id,)).fetchone()
-
+    """, (
+        id,
+    )).fetchone()
 
     if book is None:
 
         conn.close()
 
-        return redirect(url_for("books"))
-
+        return redirect(
+            url_for("books")
+        )
 
     book_list = conn.execute("""
         SELECT *
@@ -736,18 +826,14 @@ def edit_book(id):
         ORDER BY id DESC
     """).fetchall()
 
-
     conn.close()
-
 
     return render_template(
         "books.html",
-
         books=book_list,
-
         search="",
-
-        edit_book=book
+        edit_book=book,
+        success=None
     )
 
 
@@ -760,24 +846,25 @@ def delete_book(id):
 
     if not logged_in():
 
-        return redirect(url_for("login"))
-
+        return redirect(
+            url_for("books")
+        )
 
     conn = get_db()
-
 
     conn.execute("""
         DELETE FROM books
         WHERE id = ?
-    """, (id,))
-
+    """, (
+        id,
+    ))
 
     conn.commit()
-
     conn.close()
 
-
-    return redirect(url_for("books"))
+    return redirect(
+        url_for("books")
+    )
 
 
 # =========================================================
@@ -788,16 +875,21 @@ def delete_book(id):
 def issue_return():
 
     if not logged_in():
-        return redirect(url_for("login"))
+
+        return redirect(
+            url_for("login")
+        )
 
     conn = get_db()
 
+    # Students
     student_list = conn.execute("""
         SELECT *
         FROM students
         ORDER BY name
     """).fetchall()
 
+    # Available books
     book_list = conn.execute("""
         SELECT *
         FROM books
@@ -805,6 +897,7 @@ def issue_return():
         ORDER BY title
     """).fetchall()
 
+    # Transactions
     transaction_list = conn.execute("""
         SELECT
             transactions.id,
@@ -827,7 +920,8 @@ def issue_return():
         "issue_return.html",
         students=student_list,
         books=book_list,
-        transactions=transaction_list
+        transactions=transaction_list,
+        today=date.today().isoformat()
     )
 
 
@@ -839,32 +933,55 @@ def issue_return():
 def issue_book():
 
     if not logged_in():
-        return redirect(url_for("login"))
 
-    student_id = request.form.get("student_id")
-    book_id = request.form.get("book_id")
-    issue_date = request.form.get("issue_date")
-    return_date = request.form.get("return_date")
+        return redirect(
+            url_for("login")
+        )
+
+    student_id = request.form.get(
+        "student_id"
+    )
+
+    book_id = request.form.get(
+        "book_id"
+    )
+
+    issue_date = request.form.get(
+        "issue_date"
+    )
+
+    return_date = request.form.get(
+        "return_date"
+    )
 
     if not student_id or not book_id:
-        return redirect(url_for("issue_return"))
+
+        return redirect(
+            url_for("issue_return")
+        )
 
     if not issue_date:
+
         issue_date = date.today().isoformat()
 
     if not return_date:
+
         return_date = issue_date
 
     conn = get_db()
 
+    # Check book quantity
     book = conn.execute("""
         SELECT quantity
         FROM books
         WHERE id = ?
-    """, (book_id,)).fetchone()
+    """, (
+        book_id,
+    )).fetchone()
 
     if book and book["quantity"] > 0:
 
+        # Create transaction
         conn.execute("""
             INSERT INTO transactions
             (
@@ -882,17 +999,22 @@ def issue_book():
             return_date
         ))
 
+        # Reduce available quantity
         conn.execute("""
             UPDATE books
             SET quantity = quantity - 1
             WHERE id = ?
-        """, (book_id,))
+        """, (
+            book_id,
+        ))
 
         conn.commit()
 
     conn.close()
 
-    return redirect(url_for("issue_return"))
+    return redirect(
+        url_for("issue_return")
+    )
 
 
 # =========================================================
@@ -903,7 +1025,10 @@ def issue_book():
 def return_book(id):
 
     if not logged_in():
-        return redirect(url_for("login"))
+
+        return redirect(
+            url_for("login")
+        )
 
     conn = get_db()
 
@@ -911,32 +1036,38 @@ def return_book(id):
         SELECT book_id
         FROM transactions
         WHERE id = ?
-        AND status = 'Issued'
-    """, (id,)).fetchone()
+          AND status = 'Issued'
+    """, (
+        id,
+    )).fetchone()
 
     if transaction:
 
-        # Keep the original expected return date.
-        # Only change the status when the book is actually returned.
-
+        # Mark transaction as returned
         conn.execute("""
             UPDATE transactions
             SET status = 'Returned'
             WHERE id = ?
-        """, (id,))
+        """, (
+            id,
+        ))
 
+        # Increase available quantity
         conn.execute("""
             UPDATE books
             SET quantity = quantity + 1
             WHERE id = ?
-        """, (transaction["book_id"],))
+        """, (
+            transaction["book_id"],
+        ))
 
         conn.commit()
 
     conn.close()
 
-    return redirect(url_for("issue_return"))
-
+    return redirect(
+        url_for("issue_return")
+    )
 
 
 # =========================================================
@@ -948,50 +1079,41 @@ def history():
 
     if not logged_in():
 
-        return redirect(url_for("login"))
-
+        return redirect(
+            url_for("login")
+        )
 
     conn = get_db()
 
-
     transaction_list = conn.execute("""
         SELECT
-
             transactions.id,
-
             students.name AS student_name,
-
             books.title AS book_title,
-
             transactions.issue_date,
-
             transactions.return_date,
-
             transactions.status
-
         FROM transactions
-
         JOIN students
-        ON transactions.student_id = students.id
-
+            ON transactions.student_id = students.id
         JOIN books
-        ON transactions.book_id = books.id
-
+            ON transactions.book_id = books.id
         ORDER BY transactions.id DESC
-
     """).fetchall()
-
 
     conn.close()
 
-
     return render_template(
-
         "history.html",
-
         transactions=transaction_list
-
     )
+
+
+# =========================================================
+# CREATE DATABASE WHEN APPLICATION STARTS
+# =========================================================
+
+create_database()
 
 
 # =========================================================
@@ -1000,4 +1122,6 @@ def history():
 
 if __name__ == "__main__":
 
-   app.run(debug=True)
+    app.run(
+        debug=True
+    )
