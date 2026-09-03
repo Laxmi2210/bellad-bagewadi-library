@@ -1,7 +1,12 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
     <title>Admin Dashboard</title>
 
@@ -14,25 +19,40 @@
 
 <div class="dashboard">
 
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
     <header>
 
         <div>
+
             <h1>📊 ADMIN DASHBOARD</h1>
 
             <p>
                 BELLAD BAGEWADI GRAM PANCHAYAT LIBRARY
             </p>
+
         </div>
 
         <a href="{{ url_for('logout') }}"
            class="logout">
+
             🚪 Logout
+
         </a>
 
     </header>
 
 
+    <!-- =====================================================
+         DASHBOARD CARDS
+    ====================================================== -->
+
     <div class="cards">
+
+
+        <!-- STUDENTS -->
 
         <div class="card">
 
@@ -40,16 +60,24 @@
 
             <h2>Students</h2>
 
-            <strong>{{ students }}</strong>
+            <strong>
+                {{ students }}
+            </strong>
 
-            <p>Registered Students</p>
+            <p>
+                Registered Students
+            </p>
 
             <a href="{{ url_for('students') }}">
+
                 Manage Students →
+
             </a>
 
         </div>
 
+
+        <!-- BOOKS -->
 
         <div class="card">
 
@@ -57,16 +85,24 @@
 
             <h2>Books</h2>
 
-            <strong>{{ books }}</strong>
+            <strong>
+                {{ books }}
+            </strong>
 
-            <p>Total Books</p>
+            <p>
+                Total Books
+            </p>
 
             <a href="{{ url_for('books') }}">
+
                 Manage Books →
+
             </a>
 
         </div>
 
+
+        <!-- ISSUED -->
 
         <div class="card">
 
@@ -74,16 +110,24 @@
 
             <h2>Issued</h2>
 
-            <strong>{{ issued }}</strong>
+            <strong>
+                {{ issued }}
+            </strong>
 
-            <p>Books Currently Issued</p>
+            <p>
+                Books Currently Issued
+            </p>
 
             <a href="{{ url_for('issue_return') }}">
+
                 Issue / Return →
+
             </a>
 
         </div>
 
+
+        <!-- RETURNED -->
 
         <div class="card">
 
@@ -91,42 +135,85 @@
 
             <h2>Returned</h2>
 
-            <strong>{{ returned }}</strong>
+            <strong>
+                {{ returned }}
+            </strong>
 
-            <p>Returned Books</p>
+            <p>
+                Returned Books
+            </p>
 
             <a href="{{ url_for('history') }}">
+
                 View History →
+
             </a>
 
         </div>
 
+
     </div>
 
+
+    <!-- =====================================================
+         QUICK ACTIONS
+    ====================================================== -->
 
     <div class="quick">
 
-        <h2>Quick Actions</h2>
+        <h2>⚡ Quick Actions</h2>
+
+
+        <!-- STUDENTS REGISTRATION -->
 
         <a href="{{ url_for('students') }}">
-            👨‍🎓 Students
+
+            👨‍🎓 Students Registration
+
         </a>
+
+
+        <!-- BOOKS -->
 
         <a href="{{ url_for('books') }}">
+
             📚 Books
+
         </a>
+
+
+        <!-- ISSUE / RETURN -->
 
         <a href="{{ url_for('issue_return') }}">
+
             📤📥 Issue / Return
+
         </a>
+
+
+        <!-- HISTORY -->
 
         <a href="{{ url_for('history') }}">
+
             📜 History
+
         </a>
 
+
+        <!-- PUBLIC REGISTRATION -->
+
+        <a href="{{ url_for('students') }}">
+
+            📝 Registration
+
+        </a>
+
+
     </div>
+
 
 </div>
 
 </body>
+
 </html>
